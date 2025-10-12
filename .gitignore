@@ -1,0 +1,20 @@
+# Git ignore for a simple website
+
+# Editor/IDE specific files
+.vscode/
+.idea/
+
+# Build artifacts and temporary files
+/dist/
+/build/
+/tmp/
+*.log
+*.bak
+*.swp
+
+# Node.js specific (if using npm for frontend tools)
+/node_modules/
+
+# Environment variables
+.env
+.env.local
