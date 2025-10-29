@@ -17,57 +17,124 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
 });
 
 /* Slider logic */
-(function () {
-    const track = document.getElementById('sliderTrack');
-    const slides = Array.from(track.children);
-    const prev = document.getElementById('prevBtn');
-    const next = document.getElementById('nextBtn');
-    let idx = 0;
-    let timer = null;
+const track = document.querySelector('.slider-track');
+const slides = Array.from(document.querySelectorAll('.slide'));
+const btnNext = document.querySelector('.arrow.right');
+const btnPrev = document.querySelector('.arrow.left');
+const dotsContainer = document.querySelector('.dots');
 
-    function update() {
-        // determine slides per view based on viewport
-        const vp = window.innerWidth;
-        const perView = vp <= 800 ? 1 : 3;
-        // width of each slide element (including margin-right)
-        const slideWidth = slides[0].getBoundingClientRect().width + 12;
-        const maxIdx = Math.max(0, slides.length - perView);
-        if (idx > maxIdx) idx = 0;
-        if (idx < 0) idx = maxIdx;
-        const offset = -idx * slideWidth;
-        track.style.transform = `translateX(${offset}px)`;
-    }
+let slidesToShow = window.innerWidth <= 800 ? 1 : 3;
+let index = slidesToShow; // бо додаємо клоновані елементи
+let autoSlide;
+let startX = 0;
 
-    function startAuto() {
-        timer = setInterval(() => {
-            idx++;
-            update();
-        }, 4000);
-    }
+// --- Cloning the first and the last slides for the smooth cycle ---
+const firstClones = slides.slice(0, slidesToShow).map(s => s.cloneNode(true));
+const lastClones = slides.slice(-slidesToShow).map(s => s.cloneNode(true));
 
-    function stopAuto() {
-        clearInterval(timer);
-        timer = null;
-    }
+firstClones.forEach(clone => track.appendChild(clone));
+lastClones.forEach(clone => track.prepend(clone));
 
-    prev.addEventListener('click', () => {
-        stopAuto();
-        idx--;
-        update();
-        startAuto();
+const allSlides = document.querySelectorAll('.slide');
+const totalSlides = allSlides.length;
+
+// --- Dots creation ---
+slides.forEach((_, i) => {
+    const dot = document.createElement('div');
+    dot.classList.add('dot');
+    if (i === 0) dot.classList.add('active');
+    dot.addEventListener('click', () => {
+        goToSlide(i + slidesToShow);
+        resetTimer();
     });
-    next.addEventListener('click', () => {
-        stopAuto();
-        idx++;
-        update();
-        startAuto();
-    });
-    window.addEventListener('resize', () => {
-        update();
-    });
-    // init
-    setTimeout(() => {
-        update();
-        startAuto();
-    }, 100);
-})();
+    dotsContainer.appendChild(dot);
+});
+const dots = document.querySelectorAll('.dot');
+
+// --- Start position ---
+const slideWidth = allSlides[0].clientWidth;
+track.style.transform = `translateX(-${slideWidth * index}px)`;
+
+function goToSlide(i) {
+    index = i;
+    track.style.transition = 'transform 0.6s ease';
+    track.style.transform = `translateX(-${slideWidth * index}px)`;
+    updateDots();
+}
+
+function updateDots() {
+    dots.forEach(dot => dot.classList.remove('active'));
+    const activeIndex = (index - slidesToShow + slides.length) % slides.length;
+    dots[activeIndex].classList.add('active');
+}
+
+function nextSlide() {
+    index++;
+    track.style.transition = 'transform 0.6s ease';
+    track.style.transform = `translateX(-${slideWidth * index}px)`;
+    updateDots();
+}
+
+function prevSlide() {
+    index--;
+    track.style.transition = 'transform 0.6s ease';
+    track.style.transform = `translateX(-${slideWidth * index}px)`;
+    updateDots();
+}
+
+// --- Smooth movement from the last to the first slide ---
+track.addEventListener('transitionend', () => {
+    if (index >= totalSlides - slidesToShow) {
+        index = slidesToShow;
+        track.style.transition = 'none';
+        track.style.transform = `translateX(-${slideWidth * index}px)`;
+    }
+    if (index <= 0) {
+        index = totalSlides - slidesToShow * 2;
+        track.style.transition = 'none';
+        track.style.transform = `translateX(-${slideWidth * index}px)`;
+    }
+});
+
+// --- Auto scrolling ---
+function startAutoSlide() {
+    autoSlide = setInterval(nextSlide, 5000);
+}
+
+function resetTimer() {
+    clearInterval(autoSlide);
+    startAutoSlide();
+}
+
+btnNext.addEventListener('click', () => {
+    nextSlide();
+    resetTimer();
+});
+btnPrev.addEventListener('click', () => {
+    prevSlide();
+    resetTimer();
+});
+
+// --- Swipe for mobile ---
+track.addEventListener('touchstart', e => startX = e.touches[0].clientX);
+track.addEventListener('touchend', e => {
+    const diff = e.changedTouches[0].clientX - startX;
+    if (diff < -50) {
+        nextSlide();
+        resetTimer();
+    }
+    if (diff > 50) {
+        prevSlide();
+        resetTimer();
+    }
+});
+
+// --- Resize ---
+window.addEventListener('resize', () => {
+    slidesToShow = window.innerWidth <= 800 ? 1 : 3;
+    const newWidth = allSlides[0].clientWidth;
+    track.style.transition = 'none';
+    track.style.transform = `translateX(-${newWidth * index}px)`;
+});
+
+startAutoSlide();
