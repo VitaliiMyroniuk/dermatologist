@@ -20,7 +20,7 @@ body {
 .container {
     max-width: var(--max-width);
     margin: 0 auto;
-    padding: 0 20px 20px;
+    padding: 0 0 20px;
 }
 
 .card {
@@ -53,8 +53,7 @@ body {
     display: flex;
     align-items: center;
     gap: 16px;
-    padding-top: 5px;
-    padding-bottom: 5px;
+    padding: 5px 20px;
 }
 
 .logo {
@@ -166,7 +165,6 @@ body {
 
 .slider-container {
     position: relative;
-    /*padding: 0 20px 20px;*/
     width: 100%;
     max-width: var(--max-width);
     margin: 0 auto;
