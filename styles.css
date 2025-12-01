@@ -166,6 +166,10 @@ body {
     border-bottom: 1px solid #f4f4f4;
 }
 
+.services-list .price {
+    white-space: nowrap;
+}
+
 /* Gallery */
 .gallery-section {
     padding: 5px 0;
